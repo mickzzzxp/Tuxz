@@ -1,0 +1,288 @@
+-- LocalScript dentro de StarterGui
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local UIS = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+
+-- ScreenGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "TuxHub"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+
+-- Frame principal
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0, 300, 0, 280)
+mainFrame.Position = UDim2.new(0.5, -150, 0.5, -140)
+mainFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+mainFrame.BorderSizePixel = 0
+mainFrame.Active = true
+mainFrame.Draggable = true
+mainFrame.Parent = screenGui
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 12)
+corner.Parent = mainFrame
+
+-- Botão de fechar
+local closeButton = Instance.new("TextButton")
+closeButton.Size = UDim2.new(0, 30, 0, 30)
+closeButton.Position = UDim2.new(1, -35, 0, 5)
+closeButton.Text = "X"
+closeButton.TextScaled = true
+closeButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+closeButton.Parent = mainFrame
+
+-- Botão de minimizar
+local minimizeButton = Instance.new("TextButton")
+minimizeButton.Size = UDim2.new(0, 30, 0, 30)
+minimizeButton.Position = UDim2.new(1, -70, 0, 5)
+minimizeButton.Text = "-"
+minimizeButton.TextScaled = true
+minimizeButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+minimizeButton.Parent = mainFrame
+
+-- Título
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Size = UDim2.new(1, -80, 0, 30)
+titleLabel.Position = UDim2.new(0, 0, 0, 5)
+titleLabel.BackgroundTransparency = 1
+titleLabel.Text = "Tux Hub"
+titleLabel.TextScaled = true
+titleLabel.Font = Enum.Font.GothamBold
+titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+titleLabel.Parent = mainFrame
+
+-- Fechar
+closeButton.MouseButton1Click:Connect(function()
+    screenGui:Destroy()
+end)
+
+---------------------------------------------------------
+-- SISTEMA DE PÁGINAS
+---------------------------------------------------------
+local page1 = Instance.new("Frame")
+page1.Size = UDim2.new(1, 0, 1, -40)
+page1.Position = UDim2.new(0, 0, 0, 40)
+page1.BackgroundTransparency = 1
+page1.Parent = mainFrame
+
+local page2 = Instance.new("Frame")
+page2.Size = UDim2.new(1, 0, 1, -40)
+page2.Position = UDim2.new(0, 0, 0, 40)
+page2.BackgroundTransparency = 1
+page2.Visible = false
+page2.Parent = mainFrame
+
+-- Botão para alternar página ">" / "<"
+local changePageButton = Instance.new("TextButton")
+changePageButton.Size = UDim2.new(0, 30, 0, 30)
+changePageButton.Position = UDim2.new(1, -40, 1, -35)
+changePageButton.Text = ">"
+changePageButton.TextScaled = true
+changePageButton.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+changePageButton.Parent = mainFrame
+
+local currentPage = 1
+changePageButton.MouseButton1Click:Connect(function()
+    if currentPage == 1 then
+        page1.Visible = false
+        page2.Visible = true
+        changePageButton.Text = "<"
+        currentPage = 2
+    else
+        page1.Visible = true
+        page2.Visible = false
+        changePageButton.Text = ">"
+        currentPage = 1
+    end
+end)
+
+---------------------------------------------------------
+-- FUNÇÕES DA PÁGINA 1
+---------------------------------------------------------
+
+-- INF JUMP
+local infJumpButton = Instance.new("TextButton")
+infJumpButton.Size = UDim2.new(0, 200, 0, 40)
+infJumpButton.Position = UDim2.new(0.5, -100, 0, 20)
+infJumpButton.Text = "Inf Jump: OFF"
+infJumpButton.TextScaled = true
+infJumpButton.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+infJumpButton.Parent = page1
+
+local infJumpEnabled = false
+infJumpButton.MouseButton1Click:Connect(function()
+    infJumpEnabled = not infJumpEnabled
+    infJumpButton.Text = infJumpEnabled and "Inf Jump: ON" or "Inf Jump: OFF"
+end)
+
+UIS.JumpRequest:Connect(function()
+    local humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
+    if infJumpEnabled and humanoid then
+        humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+    end
+end)
+
+-- GOD MODE
+local godButton = Instance.new("TextButton")
+godButton.Size = UDim2.new(0, 200, 0, 40)
+godButton.Position = UDim2.new(0.5, -100, 0, 70)
+godButton.Text = "God Mode: OFF"
+godButton.TextScaled = true
+godButton.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+godButton.Parent = page1
+
+local godEnabled = false
+local function applyGodMode(humanoid)
+    if godEnabled and humanoid then
+        humanoid.Health = humanoid.MaxHealth
+        humanoid:GetPropertyChangedSignal("Health"):Connect(function()
+            if godEnabled and humanoid.Health < humanoid.MaxHealth then
+                humanoid.Health = humanoid.MaxHealth
+            end
+        end)
+    end
+end
+godButton.MouseButton1Click:Connect(function()
+    godEnabled = not godEnabled
+    godButton.Text = godEnabled and "God Mode: ON" or "God Mode: OFF"
+    if LocalPlayer.Character then
+        local hum = LocalPlayer.Character:FindFirstChild("Humanoid")
+        if hum then
+            applyGodMode(hum)
+        end
+    end
+end)
+LocalPlayer.CharacterAdded:Connect(function(char)
+    local hum = char:WaitForChild("Humanoid")
+    applyGodMode(hum)
+end)
+
+-- NO HIT (velocidade 30)
+local noHitButton = Instance.new("TextButton")
+noHitButton.Size = UDim2.new(0, 200, 0, 40)
+noHitButton.Position = UDim2.new(0.5, -100, 0, 120)
+noHitButton.Text = "No Hit: OFF"
+noHitButton.TextScaled = true
+noHitButton.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+noHitButton.Parent = page1
+
+local noHitEnabled = false
+noHitButton.MouseButton1Click:Connect(function()
+    noHitEnabled = not noHitEnabled
+    noHitButton.Text = noHitEnabled and "No Hit: ON" or "No Hit: OFF"
+end)
+
+local function enableNoHit(character)
+    local humanoid = character:WaitForChild("Humanoid")
+    local root = character:WaitForChild("HumanoidRootPart")
+    local speed = 30
+
+    RunService.Heartbeat:Connect(function()
+        if noHitEnabled and humanoid and root then
+            local moveDir = Vector3.new()
+            if UIS:IsKeyDown(Enum.KeyCode.W) then moveDir = moveDir + workspace.CurrentCamera.CFrame.LookVector end
+            if UIS:IsKeyDown(Enum.KeyCode.S) then moveDir = moveDir - workspace.CurrentCamera.CFrame.LookVector end
+            if UIS:IsKeyDown(Enum.KeyCode.A) then moveDir = moveDir - workspace.CurrentCamera.CFrame.RightVector end
+            if UIS:IsKeyDown(Enum.KeyCode.D) then moveDir = moveDir + workspace.CurrentCamera.CFrame.RightVector end
+
+            local moveVector = humanoid.MoveDirection
+            if moveVector.Magnitude > 0 then moveDir = moveDir + moveVector end
+
+            if moveDir.Magnitude > 0 then
+                root.Velocity = Vector3.new(moveDir.Unit.X * speed, root.Velocity.Y, moveDir.Unit.Z * speed)
+            end
+        end
+    end)
+end
+
+if LocalPlayer.Character then
+    enableNoHit(LocalPlayer.Character)
+end
+LocalPlayer.CharacterAdded:Connect(enableNoHit)
+
+-- ESP
+local espButton = Instance.new("TextButton")
+espButton.Size = UDim2.new(0, 200, 0, 40)
+espButton.Position = UDim2.new(0.5, -100, 0, 170)
+espButton.Text = "ESP: OFF"
+espButton.TextScaled = true
+espButton.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+espButton.Parent = page1
+
+local espEnabled = false
+espButton.MouseButton1Click:Connect(function()
+    espEnabled = not espEnabled
+    espButton.Text = espEnabled and "ESP: ON" or "ESP: OFF"
+    for _, plr in pairs(Players:GetPlayers()) do
+        if plr ~= LocalPlayer and plr.Character then
+            local highlight = plr.Character:FindFirstChildOfClass("Highlight")
+            if espEnabled then
+                if not highlight then
+                    highlight = Instance.new("Highlight")
+                    highlight.FillTransparency = 1
+                    highlight.OutlineColor = Color3.fromRGB(255, 0, 0)
+                    highlight.Parent = plr.Character
+                end
+            else
+                if highlight then
+                    highlight:Destroy()
+                end
+            end
+        end
+    end
+end)
+
+---------------------------------------------------------
+-- PÁGINA 2 - Anti Ban
+---------------------------------------------------------
+local antiBanButton = Instance.new("TextButton")
+antiBanButton.Size = UDim2.new(0, 200, 0, 40)
+antiBanButton.Position = UDim2.new(0.5, -100, 0, 20)
+antiBanButton.Text = "Anti Ban: OFF"
+antiBanButton.TextScaled = true
+antiBanButton.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+antiBanButton.Parent = page2
+
+local antiBanEnabled = false
+antiBanButton.MouseButton1Click:Connect(function()
+    antiBanEnabled = not antiBanEnabled
+    antiBanButton.Text = antiBanEnabled and "Anti Ban: ON" or "Anti Ban: OFF"
+
+    if antiBanEnabled then
+        local mt = getrawmetatable(game)
+        local old = mt.__namecall
+        setreadonly(mt, false)
+        mt.__namecall = newcclosure(function(self, ...)
+            local method = getnamecallmethod()
+            if tostring(self) == tostring(LocalPlayer) and method == "Kick" then
+                return
+            end
+            return old(self, ...)
+        end)
+        setreadonly(mt, true)
+    end
+end)
+
+---------------------------------------------------------
+-- MINIMIZAR/RESTORE (TOGGLE)
+---------------------------------------------------------
+local minimized = false
+local elementsToToggle = {page1, page2, changePageButton, infJumpButton, godButton, noHitButton, espButton, antiBanButton}
+
+minimizeButton.MouseButton1Click:Connect(function()
+    minimized = not minimized
+    if minimized then
+        mainFrame.Size = UDim2.new(0, 300, 0, 40)
+        for _, obj in pairs(elementsToToggle) do
+            obj.Visible = false
+        end
+    else
+        mainFrame.Size = UDim2.new(0, 300, 0, 280)
+        for _, obj in pairs(elementsToToggle) do
+            obj.Visible = true
+        end
+    end
+end)
